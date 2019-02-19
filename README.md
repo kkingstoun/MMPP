@@ -1,1 +1,1 @@
-# post_mumax_v4
+# Post processing tool for mumax
