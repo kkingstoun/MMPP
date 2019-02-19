@@ -30,7 +30,7 @@ class OvfFile:
         with open(path, 'rb') as f:
             headers = {}
             capture_keys = ("xmin", "ymin", "zmin", "xmin", "ymin", "zmin", "xstepsize",
-                            "ystepsize", "zstepsize", "xnodes", "ynodes", "znodes")
+                            "ystepsize", "zstepsize", "xnodes", "ynodes", "znodes", "valuedim")
 
             a = ""
             while not "Begin: Data" in a:
@@ -45,15 +45,25 @@ class OvfFile:
             znodes = int(headers['znodes'])
             ynodes = int(headers['ynodes'])
             xnodes = int(headers['xnodes'])
+            nOfComp = int(headers['valuedim'])
 
-            array_size = xnodes*ynodes*znodes
-
-            outArray = np.fromfile(f, '<f', count=int(
-                array_size)).reshape(znodes, ynodes, xnodes)
+            array_size = xnodes*ynodes*znodes*nOfComp+1
+            outArray1 = np.fromfile(f, '<f', count=int(array_size))
+            if outArray1[0]==1234567:
+                outArray = outArray1[1:].reshape(znodes, ynodes, xnodes, nOfComp)
+            else: "sequence 1234567 not detected!"
+            print(outArray.shape, outArray1.shape, array_size)
+            # the last 2 lines of OVF files are as follows:
+            # # End: Data Binary 4
+            # # End: Segment
+            
+            print(f.readline()) # temporary verification
+            print(f.readline()) # temporary verification
 
         self._array = outArray[self._parms.getParms["zStart"]:self._parms.getParms["zStop"],
                                self._parms.getParms["yStart"]:self._parms.getParms["yStop"], 
-                               self._parms.getParms["xStart"]:self._parms.getParms["xStop"]]
+                               self._parms.getParms["xStart"]:self._parms.getParms["xStop"],
+                               :]
         self._headers = headers
         self._time = time
 
@@ -70,6 +80,7 @@ class OvfFile:
         shape = OvfFile(file_list[0], self._parms).headers
 
         print(shape["xnodes"])
+        print("N of files to process: ", len(file_list))
 
         print("Available nodes (n-1): " + str(int(mp.cpu_count()-1)))
         self.pool = mp.Pool(processes=int(mp.cpu_count()-1))
@@ -78,8 +89,8 @@ class OvfFile:
                                                                                 len(file_list), 
                                                                                 int(shape["znodes"]),
                                                                                 int(shape["ynodes"]),
-                                                                                int(shape["xnodes"]),
-                                                                                1
+                                                                                int(shape["xnodes"])
+                                                                                int(shape["valuedim"]),
                                                                             ])
         self.pool.close()
         self.pool.join()
