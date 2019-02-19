@@ -3,5 +3,5 @@ import ovf
 
 if __name__ == "__main__":
     parms = parameters.ovfParms(head="m_y")
-    M = ovf.OvfFile("X:\Projekty\Radek\circular_10.out", parms)
-    # print(M.array.shape)
+    M_txyz = ovf.OvfFile("C:/Users/Mateusz/Desktop/Radek/circular_10.out", parms)
+    # print(M_txyz.array.shape)

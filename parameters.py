@@ -18,7 +18,6 @@ class ovfParms:
         self.yAverage = False
         self.zAverage = False
     
-        self.comp = 0
         self.head = "m_z"
         self.oneComp = True
 
@@ -27,5 +26,9 @@ class ovfParms:
                 setattr(self, key, value)
     
     @property
-    def parms(self):
+    def getParms(self):
+         return self.__dict__
+
+    @property
+    def getParmsForArray(self):
          return self.__dict__

@@ -2,6 +2,11 @@ import os
 import numpy as np
 import glob 
 import re
+import multiprocessing as mp
+from functools import partial
+
+def loadSingleOvf(parms, file):
+    return OvfFile(file,parms).array
 
 class OvfFile:
 
@@ -9,8 +14,8 @@ class OvfFile:
     def getKey(filename):
         return int(re.findall(r'\d+',filename)[-1])
 
-    def __parseFile(self):
-        with open(self._path, 'rb') as f:
+    def __parseFile(self, path):
+        with open(path, 'rb') as f:
             headers = {}
             capture_keys = ("xmin", "ymin", "zmin", "xmin", "ymin", "zmin", "xstepsize",
                             "ystepsize", "zstepsize", "xnodes", "ynodes", "znodes")
@@ -43,11 +48,38 @@ class OvfFile:
         file_list = glob.glob(
             self._path+"/"+self._parms.head+'*.ovf')[::self._parms.nStep]  # files filtering
 
-
-
         file_list = sorted(file_list, key=self.getKey)[
             self._parms.tStart:self._parms.tStop]
-        # print(file_list)
+
+        shape = OvfFile(file_list[0], self._parms).headers
+
+        print(shape["xnodes"])
+        # self.M = np.zeros(
+        #         [len(file_list), int(shape["znodes"]), int(shape["ynodes"]), int(shape["xnodes"]),1]
+        #     )
+        
+        print(self.M.shape)
+        print("Available nodes: " + str(int(mp.cpu_count())))
+        self.pool = mp.Pool(processes=int(mp.cpu_count()-1))
+        func = partial(loadSingleOvf,self._parms)
+        self.M = self.pool.map(func, file_list)
+        self.pool.close()
+        self.pool.join()
+        self.M = np.array(self.M)
+        print(len(self.M), self.M.shape)
+
+        # self.M[:, :, :, 0] = self.Mp
+
+
+        # 
+
+        # i = 0
+
+        # if self._parms.getParms["oneComp"] == True:
+        #     print("test")
+        #     M = pool.map(loadOVF, self._parms.getParms)
+
+
 
     @property
     def array(self):
@@ -70,7 +102,7 @@ class OvfFile:
         self._path = path
         self._parms = parms
 
-        if os.path.isdir(path):
+        if os.path.isdir(self._path):
             self.__readDir()
         else:
-            self.__parseFile()
+            self.__parseFile(self._path)
