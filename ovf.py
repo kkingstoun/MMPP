@@ -84,6 +84,7 @@ class OvfFile:
         self.pool.close()
         self.pool.join()
         print("Matrix shape:", *self.mShape)
+        self._mShape = self.mShape
 
     @property
     def array(self):
