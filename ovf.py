@@ -38,48 +38,37 @@ class OvfFile:
 
             outArray = np.fromfile(f, '<f', count=int(
                 array_size)).reshape(znodes, ynodes, xnodes)
-
-        self._array = outArray
+        # print(outArray.shape)
+        self._array = outArray[self._parms.getParms["zStart"]:self._parms.getParms["zStop"],
+                               self._parms.getParms["yStart"]:self._parms.getParms["yStop"], self._parms.getParms["xStart"]:self._parms.getParms["xStop"]]
         self._headers = headers
         self._time = time
 
     def __readDir(self):
-        print("Reading folder: " + self._path+"/"+self._parms.head+'*.ovf')
+        print("Reading folder: " + self._path+"/" +
+              self._parms.getParms["head"] + '*.ovf')
+
+
         file_list = glob.glob(
-            self._path+"/"+self._parms.head+'*.ovf')[::self._parms.nStep]  # files filtering
+            self._path+"/"+self._parms.getParms["head"]+'*.ovf')[::self._parms.getParms["nStep"]]  # files filtering
 
         file_list = sorted(file_list, key=self.getKey)[
-            self._parms.tStart:self._parms.tStop]
+            self._parms.getParms["tStart"]:self._parms.getParms["tStop"]]
 
         shape = OvfFile(file_list[0], self._parms).headers
 
         print(shape["xnodes"])
-        # self.M = np.zeros(
-        #         [len(file_list), int(shape["znodes"]), int(shape["ynodes"]), int(shape["xnodes"]),1]
-        #     )
+   
+               
         
-        print(self.M.shape)
-        print("Available nodes: " + str(int(mp.cpu_count())))
+        print("Available nodes (n-1): " + str(int(mp.cpu_count()-1)))
         self.pool = mp.Pool(processes=int(mp.cpu_count()-1))
         func = partial(loadSingleOvf,self._parms)
-        self.M = self.pool.map(func, file_list)
+        self.Mtxyzcarray = np.array(self.pool.map(func, file_list)).reshape([len(file_list), int(shape["znodes"]), int(shape["ynodes"]), int(shape["xnodes"]), 1]
+                                                                  )
         self.pool.close()
         self.pool.join()
-        self.M = np.array(self.M)
-        print(len(self.M), self.M.shape)
-
-        # self.M[:, :, :, 0] = self.Mp
-
-
-        # 
-
-        # i = 0
-
-        # if self._parms.getParms["oneComp"] == True:
-        #     print("test")
-        #     M = pool.map(loadOVF, self._parms.getParms)
-
-
+        print(self.Mtxyzcarray.shape)
 
     @property
     def array(self):
@@ -94,13 +83,16 @@ class OvfFile:
         return self._headers
 
     @property
-    def txyArray(self):
-        return self._txyarray
+    def txyzcArray(self):
+        return self._Mtxyzcarray
 
     def __init__(self, path, parms):
 
+ 
         self._path = path
         self._parms = parms
+
+        # print(self._parms["head"])
 
         if os.path.isdir(self._path):
             self.__readDir()

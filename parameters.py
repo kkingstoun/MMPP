@@ -4,15 +4,15 @@ class ovfParms:
         
         self.finalloc = ""
         
-        self.nStep = 1
+        self.nStep = None
         self.tStart = 0
-        self.tStop = -1
+        self.tStop = None
         self.xStart = 0
-        self.xStop = -1
+        self.xStop = None
         self.yStart = 0
-        self.yStop = -1
+        self.yStop = None
         self.zStart = 0
-        self.zStop = -1
+        self.zStop = None
         
         self.xAverage = False
         self.yAverage = False
@@ -25,10 +25,7 @@ class ovfParms:
             if hasattr(self, key):
                 setattr(self, key, value)
     
+        
     @property
     def getParms(self):
-         return self.__dict__
-
-    @property
-    def getParmsForArray(self):
          return self.__dict__
