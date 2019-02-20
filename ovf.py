@@ -48,20 +48,24 @@ class OvfFile:
             nOfComp = int(headers['valuedim'])
 
             array_size = xnodes*ynodes*znodes*nOfComp+1
-            outArray1 = np.fromfile(f, '<f', count=int(array_size))
-            if outArray1[0]==1234567:
-                outArray = outArray1[1:].reshape(znodes, ynodes, xnodes, nOfComp)
-            else: "sequence 1234567 not detected!"
-            print(outArray.shape, outArray1.shape, array_size)
+            outArray = np.fromfile(f, '<f', count=int(array_size))
+
+            if outArray[0] == 1234567:
+                outArray = outArray[1:].reshape(
+                    1, znodes, ynodes, xnodes, nOfComp)
+            else:
+                "sequence 1234567 not detected!"
+
+            # print(outArray.shape, outArray1.shape, array_size)
             # the last 2 lines of OVF files are as follows:
             # # End: Data Binary 4
             # # End: Segment
-            
-            print(f.readline()) # temporary verification
-            print(f.readline()) # temporary verification
+
+            # print(f.readline())  # temporary verification
+            # print(f.readline())  # temporary verification
 
         self._array = outArray[self._parms.getParms["zStart"]:self._parms.getParms["zStop"],
-                               self._parms.getParms["yStart"]:self._parms.getParms["yStop"], 
+                               self._parms.getParms["yStart"]:self._parms.getParms["yStop"],
                                self._parms.getParms["xStart"]:self._parms.getParms["xStop"],
                                :]
         self._headers = headers
@@ -79,23 +83,22 @@ class OvfFile:
 
         shape = OvfFile(file_list[0], self._parms).headers
 
-        print(shape["xnodes"])
         print("N of files to process: ", len(file_list))
 
         print("Available nodes (n-1): " + str(int(mp.cpu_count()-1)))
         self.pool = mp.Pool(processes=int(mp.cpu_count()-1))
         func = partial(loadSingleOvf, self._parms)
-        self._Mtxyzcarray = np.array(self.pool.map(func, file_list)).reshape([
-                                                                                len(file_list), 
-                                                                                int(shape["znodes"]),
-                                                                                int(shape["ynodes"]),
-                                                                                int(shape["xnodes"])
-                                                                                int(shape["valuedim"]),
-                                                                            ])
+        self._array= np.array(self.pool.map(func, file_list)).reshape([
+            len(file_list),
+            int(shape["znodes"]),
+            int(shape["ynodes"]),
+            int(shape["xnodes"]),
+            int(shape["valuedim"]),
+        ])
         self.pool.close()
         self.pool.join()
-        print("Matrix shape:", *self.mShape)
-        self._mShape = self.mShape
+        print("Matrix shape:", *self._array.shape)
+
 
     @property
     def array(self):
@@ -106,20 +109,12 @@ class OvfFile:
         return self._array.shape
 
     @property
-    def mShape(self):
-        return self._Mtxyzcarray.shape
-
-    @property
     def time(self):
         return self._time
 
     @property
     def headers(self):
         return self._headers
-
-    @property
-    def txyzcArray(self):
-        return self._Mtxyzcarray
 
     def __init__(self, path, parms):
 
