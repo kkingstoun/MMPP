@@ -108,6 +108,10 @@ class OvfFile():
         return self._array
 
     @property
+    def avrComponent(self):
+        return np.average(self._array,axis=(4))
+
+    @property
     def shape(self):
         return self._array.shape
 

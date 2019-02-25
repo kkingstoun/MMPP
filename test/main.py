@@ -1,13 +1,16 @@
-import parameters
-import visualizeFMRModes
-import ovf
+class Polygon(object):
+    def __init__(self, id):
+        self.id = id
+        print("Asda")
 
-if __name__ == "__main__":
-    parms = parameters.ovfParms(head="m_y",comp=0)
 
-    M_txyz = ovf.OvfFile(
-        r"C:/Users/Mateusz/Desktop/Radek/circular_10.out", parms)
-    print(M_txyz.shape)
-    print(M_txyz.time)
-    # vm = visualizeFMRModes.VisualizeModes()
-    # Mfft = vm.calculateModes(M_txyz, eachX=True)
+class Rectangle(Polygon):
+    def __init__(self, id, width, height):
+        super(self.__class__, self).__init__(id)
+        self.shape = (width, height)
+
+
+class Square(Rectangle):
+    pass
+
+p = Rectangle(1,2,3)
