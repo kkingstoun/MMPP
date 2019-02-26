@@ -11,41 +11,39 @@ import numpy as np
 import glob
 import re
 import multiprocessing as mp
-from functools import partial
+from fmrmodes import FMRModes
 
-
-class OvfFile:
+class OvfFile(FMRModes):
     def __init__(self, path, parms):
+        super().__init__()
         self._path = path
         self._parms = parms
         if os.path.isdir(self._path):
             self.file_list = self.get_files_names()
-            self._headers, self._time = self.catch_headers(self.file_list[0])
-            self.array_size = self.get_array_size()
-            self._array, self._time = self.__readDir()
+            # self._headers, self._time = self.catch_headers(self.file_list[0])
+            # self.array_size = self.get_array_size()
+            self._array, self._headers, self._time = self.__readDir()
         else:
-            self._headers, self._time = self.catch_headers(self._path)
-            self.array_size = self.get_array_size()
-            self._array, self._time = self.parse_file(self._path)
+            # self.array_size = self.get_array_size()
+            self._array, self._headers, self._time = self.parse_file(self._path)
 
     @staticmethod
     def getKey(filename):
         return int(re.findall(r'\d+', filename)[-1])
 
-    def catch_headers(self, path):
+    def catch_headers(self, f):
         headers = {}
         capture_keys = ("xmin", "ymin", "zmin", "xmin", "ymin", "zmin", "xstepsize",
                         "ystepsize", "zstepsize", "xnodes", "ynodes", "znodes", "valuedim")
         a = ""
-        with open(path, 'rb') as f:
-            while not "Begin: Data" in a:
-                a = f.readline().strip().decode('ASCII')
-                for key in capture_keys:
-                    if key in a:
-                        headers[key] = float(a.split()[2])
-                if "Total simulation time" in a:
-                    time = float(a.split(":")[-1].strip().split()[0].strip())
-            return headers, time
+        while not "Begin: Data" in a:
+            a = f.readline().strip().decode('ASCII')
+            for key in capture_keys:
+                if key in a:
+                    headers[key] = float(a.split()[2])
+            if "Total simulation time" in a:
+                time = float(a.split(":")[-1].strip().split()[0].strip())
+        return headers, time
 
     def get_array_size(self):
         # TODO: int conversion should be done in catch_headers if it's needed everywhere
@@ -63,19 +61,19 @@ class OvfFile:
         pool = mp.Pool(processes=int(mp.cpu_count()-1))
 
         # func = partial(self.parse_file)
-        array, time = zip(*pool.map(self.parse_file, self.file_list))
+        array, headers, time = zip(*pool.map(self.parse_file, self.file_list))
         pool.close()
         pool.join()
         array = np.array(array).reshape([
             len(self.file_list),
-            int(self._headers["znodes"]),
-            int(self._headers["ynodes"]),
-            int(self._headers["xnodes"]),
-            int(self._headers["valuedim"]),
+            int(headers[0]["znodes"]),
+            int(headers[0]["ynodes"]),
+            int(headers[0]["xnodes"]),
+            int(headers[0]["valuedim"]),
         ])
 
         print("Matrix shape:", array.shape)
-        return array, np.array(time)
+        return array, headers[0], np.array(time)
 
     def get_files_names(self):
         file_list = glob.glob(
@@ -85,10 +83,21 @@ class OvfFile:
 
     def parse_file(self, path):
         with open(path, 'rb') as f:
-            outArray = np.fromfile(f, '<f', count=int(self.array_size))
-            outArray = outArray[1:].reshape(
-                    1, int(self._headers['znodes']), int(self._headers['ynodes']), int(self._headers['xnodes']), int(self._headers['valuedim']))
+            _headers, _time = self.catch_headers(f)
+            
+            znodes = int(_headers['znodes'])
+            ynodes = int(_headers['ynodes'])
+            xnodes = int(_headers['xnodes'])
+            nOfComp = int(_headers['valuedim'])
+            
+            outArray = np.fromfile(f, '<f', count=int(
+                xnodes*ynodes*znodes*nOfComp+1))
+
+            outArray = outArray[1:].reshape(1,
+                    int(_headers['znodes']), int(_headers['ynodes']), 
+                    int(_headers['xnodes']), int(_headers['valuedim']))
+
             return outArray[self._parms.getParms["zStart"]:self._parms.getParms["zStop"],
                                    self._parms.getParms["yStart"]:self._parms.getParms["yStop"],
                                    self._parms.getParms["xStart"]:self._parms.getParms["xStop"],
-                                   :], self._time
+                                   :], _headers, _time
