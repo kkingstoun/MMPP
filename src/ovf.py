@@ -19,13 +19,14 @@ class OvfFile:
         self._path = path
         self._parms = parms
         if os.path.isdir(self._path):
-            self._headers, self._time = self.catch_headers(self.get_files_names()[0])
+            self.file_list = self.get_files_names()
+            self._headers, self._time = self.catch_headers(self.file_list[0])
             self.array_size = self.get_array_size()
-            self._array = self.__readDir()
+            self._array, self._time = self.__readDir()
         else:
             self._headers, self._time = self.catch_headers(self._path)
             self.array_size = self.get_array_size()
-            self._array = self.parse_file(self._path)
+            self._array, self._time = self.parse_file(self._path)
 
     @staticmethod
     def getKey(filename):
@@ -55,19 +56,26 @@ class OvfFile:
         return xnodes*ynodes*znodes*nOfComp+1
 
     def __readDir(self):
-        file_list = self.get_files_names()
-        print(type(file_list))
         print("Reading folder: " + self._path+"/" +
               self._parms.getParms["head"] + '*.ovf')
-        print("N of files to process: ", len(file_list))
+        print("N of files to process: ", len(self.file_list))
         print("Available nodes (n-1): " + str(int(mp.cpu_count()-1)))
         pool = mp.Pool(processes=int(mp.cpu_count()-1))
 
-        array = pool.map(self.parse_file, file_list)
+        # func = partial(self.parse_file)
+        array, time = zip(*pool.map(self.parse_file, self.file_list))
         pool.close()
         pool.join()
+        array = np.array(array).reshape([
+            len(self.file_list),
+            int(self._headers["znodes"]),
+            int(self._headers["ynodes"]),
+            int(self._headers["xnodes"]),
+            int(self._headers["valuedim"]),
+        ])
+
         print("Matrix shape:", array.shape)
-        return array
+        return array, np.array(time)
 
     def get_files_names(self):
         file_list = glob.glob(
@@ -76,7 +84,6 @@ class OvfFile:
             self._parms.getParms["tStart"]:self._parms.getParms["tStop"]]
 
     def parse_file(self, path):
-        print('df')
         with open(path, 'rb') as f:
             outArray = np.fromfile(f, '<f', count=int(self.array_size))
             outArray = outArray[1:].reshape(
@@ -84,4 +91,4 @@ class OvfFile:
             return outArray[self._parms.getParms["zStart"]:self._parms.getParms["zStop"],
                                    self._parms.getParms["yStart"]:self._parms.getParms["yStop"],
                                    self._parms.getParms["xStart"]:self._parms.getParms["xStop"],
-                                   :]
+                                   :], self._time

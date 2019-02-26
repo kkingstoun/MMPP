@@ -37,6 +37,7 @@ class Fft:
 
         
     def runFft(self):
+        pass
         # self.selectedAxis = self.selectAxis
         # self.unSelectedAxis = self.unSelectAxis
 
@@ -46,20 +47,20 @@ class Fft:
 
         # elif self.eachX == True and self.eachY == True and self.eachZ == False:
 
-        tShape = self.mtzyxc._array.shape
-        tShape = np.take(tShape, self.selectAxis)
-        tShape[*] = 1
+                            # tShape = self.mtzyxc._array.shape
+                            # tShape = np.take(tShape, self.selectAxis)
+                            # tShape[*] = 1
 
-        self.mtzyxc._array = np.average(
-            self.mtzyxc._array, axis=self.unSelectAxis)
+                            # self.mtzyxc._array = np.average(
+                            #     self.mtzyxc._array, axis=self.unSelectAxis)
 
-        self.mtzyxc._array = self.mtzyxc._array.reshape(tShape)
+                            # self.mtzyxc._array = self.mtzyxc._array.reshape(tShape)
 
-        self._across(self.selectAxis)
+                            # self._across(self.selectAxis)
 
-        self.MFft = np.array(self.MFft)
+                            # self.MFft = np.array(self.MFft)
 
-        return self.MFft
+                            # return self.MFft
 
         # elif self.eachX == True and self.eachY == False and self.eachZ == False:
         #     tShape = self.mtzyxc._array.shape
