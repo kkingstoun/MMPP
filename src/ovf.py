@@ -14,18 +14,21 @@ import multiprocessing as mp
 from fmrmodes import FMRModes
 
 class OvfFile(FMRModes):
-    def __init__(self, path, parms):
+    def __init__(self, path, parms=None):
         super().__init__()
         self._path = path
-        self._parms = parms
-        if os.path.isdir(self._path):
-            self.file_list = self.get_files_names()
-            # self._headers, self._time = self.catch_headers(self.file_list[0])
-            # self.array_size = self.get_array_size()
-            self._array, self._headers, self._time = self.__readDir()
+        if self._path.split(".")[-1] == "npz":
+            self.load(self._path)
         else:
-            # self.array_size = self.get_array_size()
-            self._array, self._headers, self._time = self.parse_file(self._path)
+            self._parms = parms
+            if os.path.isdir(self._path):
+                self.file_list = self.get_files_names()
+                # self._headers, self._time = self.catch_headers(self.file_list[0])
+                # self.array_size = self.get_array_size()
+                self._array, self._headers, self._time = self.__readDir()
+            else:
+                # self.array_size = self.get_array_size()
+                self._array, self._headers, self._time = self.parse_file(self._path)
 
     @staticmethod
     def getKey(filename):
@@ -101,3 +104,15 @@ class OvfFile(FMRModes):
                                    self._parms.getParms["yStart"]:self._parms.getParms["yStop"],
                                    self._parms.getParms["xStart"]:self._parms.getParms["xStop"],
                                    :], _headers, _time
+    def save(self, path):
+        np.savez(path, array=self._array, headers=self._headers,
+                            path=self._path, time=self._time)
+        print("Data saved to the ", path)
+    
+    def load(self, path):
+        with np.load(path) as data:
+            self._array = data["array"]
+            self._headers = data["headers"]
+            self._path = data["path"]
+            self._time = data["time"]
+        print("Data loaded successfully from  ", path)
