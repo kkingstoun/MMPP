@@ -17,7 +17,7 @@ class FMRModes(fft.Fft):
         self.eachZ = eachZ   
 
     def calculateModes(self):
-        # self.MFft = []
+        
         self.MFft = self.runFft()
         print(self.MFft.shape)
         
