@@ -1,11 +1,11 @@
 import parameters
-from fmrmodes import FMRModes
 from ovf import OvfFile
+import matplotlib.pyplot as plt
 
 if __name__ == "__main__":
-    parms = parameters.ovfParms(head="m",comp=0)
+    parms = parameters.ovfParms(head="m_y",comp=0)
 
-    mtzyxc = OvfFile(r"C:/Users/Mateusz/Desktop/Radek/circular_20.out", parms)
-
-    # vm = FMRModes(mtzyxc, eachX=True, eachY=True)
+    mtzyxc = OvfFile(
+        r"C:/Users/Mateusz/Desktop/Radek/circular_10.out2", parms)
+    mtzyxc.calculateModes(eachX=True, eachY=True, comp=0)
     # vm.calculateModes()

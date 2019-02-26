@@ -14,8 +14,9 @@ class Fft:
         window = np.hanning(len(arr))
         return np.fft.rfft(arr*window)
 
-    def __init__(self, mtzyxc):
-        self.MFft = np.zeros_like(mtzyxc.array)
+    def __init__(self):
+
+        self.MFft = np.zeros_like(self._array[::2,:,:,:,:])
 
     # @staticmethod
     @property
@@ -26,8 +27,6 @@ class Fft:
         a3 = (None, 3)[self.eachX == True]
         return tuple(filter(None, [a1, a2, a3]))
 
-        
-
     @property
     def unSelectAxis(self):
         a1 = (1, None)[self.eachZ == True]
@@ -35,11 +34,30 @@ class Fft:
         a3 = (3, None)[self.eachX == True]
         return tuple(filter(None, [a1, a2, a3]))
 
-        
-    def runFft(self):
-        pass
-        # self.selectedAxis = self.selectAxis
-        # self.unSelectedAxis = self.unSelectAxis
+
+
+    def run_fft_for_modes(self):
+
+        if self.eachZ == True:
+            pass
+        else:
+            mxy = self.keep_size(np.average(
+                self._array, axis=self.unSelectAxis))
+
+            for y in range(mxy.shape[2]):
+                print(y/mxy.shape[2]*100, "%")
+                for x in range(mxy.shape[3]):
+                    b = self._array[:, 0, y, x, self.comp]
+                    a = self._doFFT(b
+                        )
+                    self.MFft[:, 0, y, x, self.comp] = a
+        return self.MFft
+
+    def keep_size(self,m,comp=1):
+        tshape = list(self._array.shape)
+        tshape[comp]=1
+        m=m.reshape(tshape)
+        return m
 
         # if self.eachX == True and self.eachY == True and self.eachZ == True:
         #     self.self._across()
@@ -47,20 +65,20 @@ class Fft:
 
         # elif self.eachX == True and self.eachY == True and self.eachZ == False:
 
-                            # tShape = self.mtzyxc._array.shape
-                            # tShape = np.take(tShape, self.selectAxis)
-                            # tShape[*] = 1
+                    # tShape = self.mtzyxc._array.shape
+                    # tShape = np.take(tShape, self.selectAxis)
+                    # tShape[*] = 1
 
-                            # self.mtzyxc._array = np.average(
-                            #     self.mtzyxc._array, axis=self.unSelectAxis)
+                    # self.mtzyxc._array = np.average(
+                    #     self.mtzyxc._array, axis=self.unSelectAxis)
 
-                            # self.mtzyxc._array = self.mtzyxc._array.reshape(tShape)
+                    # self.mtzyxc._array = self.mtzyxc._array.reshape(tShape)
 
-                            # self._across(self.selectAxis)
+                    # self._across(self.selectAxis)
 
-                            # self.MFft = np.array(self.MFft)
+                    # self.MFft = np.array(self.MFft)
 
-                            # return self.MFft
+                    # return self.MFft
 
         # elif self.eachX == True and self.eachY == False and self.eachZ == False:
         #     tShape = self.mtzyxc._array.shape

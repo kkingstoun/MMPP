@@ -1,4 +1,4 @@
-from ovf import OvfFile
+# from ovf import OvfFile
 import parameters
 import fft
 import numpy as np
@@ -6,27 +6,40 @@ import matplotlib.pyplot as plt
 
 class FMRModes(fft.Fft):
         
-    def __init__(self, mtzyxc, copyarray=False, eachX=False, eachY=False, eachZ=False):
-        super().__init__(mtzyxc)
-        if copyarray == True:
-            self.mtzyxc = mtzyxc[:, :, :, :, :]
-        else:
-            self.mtzyxc = mtzyxc
+    # def __init__(self, mtzyxc, copyarray=False, eachX=False, eachY=False, eachZ=False):
+    def __init__(self):
+        pass
+        # 
+        # if copyarray == True:
+        #     self.mtzyxc = mtzyxc[:, :, :, :, :]
+        # else:
+        #     self.mtzyxc = mtzyxc
+        # self.eachX = eachX
+        # self.eachY = eachY
+        # self.eachZ = eachZ   
+
+    def calculateModes(self, copyarray=False, eachX=False, eachY=False, eachZ=False, comp=2):
+        super().__init__()
         self.eachX = eachX
         self.eachY = eachY
-        self.eachZ = eachZ   
+        self.eachZ = eachZ
+        self.comp = comp
 
-    def calculateModes(self):
-        
-        self.MFft = self.runFft()
+        self.MFft = self.run_fft_for_modes()
+        print(self.MFft)
         print(self.MFft.shape)
         
         ax1 = plt.subplot(211)
-        x = np.fft.rfftfreq(self.mtzyxc.shape[0], 2e-11)
-        plt.plot(np.abs(np.average(self.MFft,axis=(1,2))))
+        x = np.fft.rfftfreq(self._array.shape[0], 2e-11)
+        y = np.abs(np.average(self.MFft[:,0,:,:,comp], axis=(1, 2)))
+        print(y.shape)
+        # y = self.MFft
+        # print(y.shape)
+        plt.plot(y)
+        # print(y)
         ax2 = plt.subplot(212)
 
-        ax2.imshow(np.abs(self.MFft[99]),
+        ax2.imshow(np.abs(self.MFft[105,0,:,:,comp]),
                    origin="lower",
                    aspect="equal")
 
