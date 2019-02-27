@@ -1,5 +1,5 @@
 import numpy as np
-
+import math
 
 class Fft:
 
@@ -11,14 +11,17 @@ class Fft:
                     self.mtzyxc.array[:, 0, y, x, 0])
 
     def _doFFT(self, arr):
-        window = np.hanning(len(arr))
-        return np.fft.rfft(arr*window)
+        #Gdzieś  jest błąd, przez który muszę wywoływać arr[:,0]
+        return  np.fft.rfft(arr[:, 0]*self.get_window(len(arr[:, 0])))
+        
 
     def __init__(self):
+        pass
+        # shape = self._array.shape
+        # print(math.ceil(shape[0]/2), shape[1], shape[2], shape[3], shape[4])
+        # self.MFft = np.zeros(
+        #     (math.ceil(shape[0]/2)+1, shape[1], shape[2], shape[3], shape[4]))
 
-        self.MFft = np.zeros_like(self._array[::2,:,:,:,:])
-
-    # @staticmethod
     @property
     def selectAxis(self):
 
@@ -34,73 +37,60 @@ class Fft:
         a3 = (3, None)[self.eachX == True]
         return tuple(filter(None, [a1, a2, a3]))
 
-
+    def get_window(self,lenght):
+        if self.window == "hanning":
+            return np.hanning(lenght)
 
     def run_fft_for_modes(self):
-
+        mxy = self.keep_size(np.average(self._array, axis=self.unSelectAxis))
         if self.eachZ == True:
-            pass
+            for x in range(mxy.shape[3]):
+                print(x/mxy.shape[2]*100, "%")
+                for y in range(mxy.shape[2]):
+                    for z in range(mxy.shape[1]):
+                        b = self._array[:, z, y, x, self.comp]
+                        a = self._doFFT(b
+                                        )
+                        self.MFft[:, z, y, x, self.comp] = a
         else:
-            mxy = self.keep_size(np.average(
-                self._array, axis=self.unSelectAxis))
-
             for y in range(mxy.shape[2]):
                 print(y/mxy.shape[2]*100, "%")
                 for x in range(mxy.shape[3]):
                     b = self._array[:, 0, y, x, self.comp]
                     a = self._doFFT(b
-                        )
+                                    )
                     self.MFft[:, 0, y, x, self.comp] = a
         return self.MFft
 
-    def keep_size(self,m,comp=1):
+    def keep_size(self, m, comp=1):
         tshape = list(self._array.shape)
-        tshape[comp]=1
-        m=m.reshape(tshape)
+        for c in comp:
+            tshape[c] = 1
+        m = m.reshape(tshape)
         return m
 
-        # if self.eachX == True and self.eachY == True and self.eachZ == True:
-        #     self.self._across()
-        #     self._doFFT()
+    def average_magnetization(self):
 
-        # elif self.eachX == True and self.eachY == True and self.eachZ == False:
+        _axis = self.selectAxis
 
-                    # tShape = self.mtzyxc._array.shape
-                    # tShape = np.take(tShape, self.selectAxis)
-                    # tShape[*] = 1
+        _mag = np.average(self._array[:, :, :, :, self.comp], axis=_axis)
 
-                    # self.mtzyxc._array = np.average(
-                    #     self.mtzyxc._array, axis=self.unSelectAxis)
+        return self.keep_size(_mag,_axis)
 
-                    # self.mtzyxc._array = self.mtzyxc._array.reshape(tShape)
+    def run_fft_for_spectrum(self):
 
-                    # self._across(self.selectAxis)
+        _data = self.average_magnetization()
 
-                    # self.MFft = np.array(self.MFft)
+        _spectrum=[] 
 
-                    # return self.MFft
+        for z in range(_data.shape[1]):
+            for y in range(_data.shape[2]):
+                for x in range(_data.shape[3]):
+                    print(z,y,x)
+                    _spectrum.append(self._doFFT(_data[:,z,y,x]))
+        _spectrum = np.array(_spectrum)
+        _spectrum = np.average(np.array(_spectrum),axis=0)
 
-        # elif self.eachX == True and self.eachY == False and self.eachZ == False:
-        #     tShape = self.mtzyxc._array.shape
-        #     self.mtzyxc._array = np.average(self.mtzyxc._array, axis=(1, 2))
-        #     self.mtzyxc._array = self.mtzyxc._array.reshape(
-        #         (tShape[0], 1, 1, tShape[3], tShape[4]))
-        #     self._across(3)
-        #     self.MFft = np.array(self.MFft)
-        #     print(self.MFft.shape)
-        #     self.MFft = np.average(self.MFft, axis=0)
-        #     return self.MFft
+        _frequencies = np.fft.rfftfreq(self._array.shape[0], self.avgtime)
 
-        # elif self.eachX == False and self.eachY == False and self.eachZ == False:
-        #     self.mtzyxc._array = np.average(self.mtzyxc._array, axis=(1, 2, 3))
-        #     self._doFFT()
-
-        # elif self.eachX == False and self.eachY == True and self.eachZ == False:
-        #     self.mtzyxc._array = np.average(self.mtzyxc._array, axis=(1, 3))
-        #     self.self._across()
-        #     self._doFFT()
-
-        # elif self.eachX == False and self.eachY == False and self.eachZ == True:
-        #     self.mtzyxc._array = np.average(self.mtzyxc._array, axis=(2, 3))
-        #     self.self._across()
-        #     self._doFFT()
+        return _spectrum, _frequencies

@@ -12,8 +12,9 @@ import glob
 import re
 import multiprocessing as mp
 from fmrmodes import FMRModes
+from fmrspectrum import FMRSpectrum
 
-class OvfFile(FMRModes):
+class OvfFile(FMRModes,FMRSpectrum):
     def __init__(self, path, parms=None):
         super().__init__()
         self._path = path
@@ -47,6 +48,7 @@ class OvfFile(FMRModes):
             if "Total simulation time" in a:
                 time = float(a.split(":")[-1].strip().split()[0].strip())
         return headers, time
+
 
     def get_array_size(self):
         # TODO: int conversion should be done in catch_headers if it's needed everywhere
@@ -116,3 +118,12 @@ class OvfFile(FMRModes):
             self._path = data["path"]
             self._time = data["time"]
         print("Data loaded successfully from  ", path)
+
+    @property
+    def avgtime(self):
+        return (self._time[-1]-self._time[0])/len(self._time)
+
+    @property
+    def geom_shape(self):
+        a = self._array.shape
+        return(a[1:4])
