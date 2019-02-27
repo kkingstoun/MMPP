@@ -4,26 +4,19 @@ import matplotlib.pyplot as plt
 import numpy as np
 from hslcolormap import Hslcolormap
 
-class prepareplot():
-    def __init__(self,shape):
-        self.fig = plt.figure()
-        
-
 if __name__ == "__main__":
     parms = parameters.ovfParms(head="m_y",comp=0)
-
-    # mtzyxc = OvfFile(
-    #     r"E:/arr.npz", parms)
 
     mtzyxc = OvfFile(
         "C:/Users/Mateusz/Desktop/Radek/circular_10.out2/arr.npz", parms)
 
+    #Przykład zapisu do pliku
     # mtzyxc.save("C:/Users/Mateusz/Desktop/Radek/circular_10.out2/arr.npz")
 
     mtzyxc.fmrspectrum(window="hanning", eachX=True,
                        eachY=True, eachZ=False, comp=2)
 
-    peaks = mtzyxc.peaks(mtzyxc.fmrspectrum, thres=0.0125, min_dist=5)
+    peaks = mtzyxc.peaks(mtzyxc.fmrspectrum, , thres=0.5, min_dist=5)
 
     plt.plot(mtzyxc.fmrfreq, np.abs(
         mtzyxc.fmrspectrum))
@@ -77,17 +70,4 @@ if __name__ == "__main__":
     #             origin="lower",
     #             aspect="equal")
 
-    # parms = parameters.ovfParms()
-
-    # M_Stable = OvfFile(
-    #     r"C:/Users/Mateusz/Desktop/Radek/circular_10.out/m_stable_30.ovf", parms)
-
-    # ax3 = plt.subplot(313)
-
-    # # a = M_Stable.avrComponent
-    # print(a.shape)
-
-    # ax3.imshow(a[0,1,:,:],
-    #            origin="lower",
-    #            aspect="equal")
     plt.show()
