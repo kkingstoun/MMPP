@@ -19,8 +19,7 @@ class Fft:
         pass
         # shape = self._array.shape
         # print(math.ceil(shape[0]/2), shape[1], shape[2], shape[3], shape[4])
-        # self.MFft = np.zeros(
-        #     (math.ceil(shape[0]/2)+1, shape[1], shape[2], shape[3], shape[4]))
+     
 
     @property
     def selectAxis(self):
@@ -42,25 +41,37 @@ class Fft:
             return np.hanning(lenght)
 
     def run_fft_for_modes(self):
-        mxy = self.keep_size(np.average(self._array, axis=self.unSelectAxis))
+        _shape = self._array.shape
+        self.MFft = np.zeros(
+            (math.ceil(_shape[0]/2), _shape[1], _shape[2], _shape[3], _shape[4]))
+        _axis = self.unSelectAxis   
+        _data = self.average_magnetization()
+        for z in range(_data.shape[1]):
+            for y in range(_data.shape[2]):
+                for x in range(_data.shape[3]):
+                    self.MFft[:, z, y, x, self.comp] = self._doFFT(_data[:, z, y, x])
         if self.eachZ == True:
-            for x in range(mxy.shape[3]):
-                print(x/mxy.shape[2]*100, "%")
-                for y in range(mxy.shape[2]):
-                    for z in range(mxy.shape[1]):
-                        b = self._array[:, z, y, x, self.comp]
-                        a = self._doFFT(b
-                                        )
-                        self.MFft[:, z, y, x, self.comp] = a
-        else:
-            for y in range(mxy.shape[2]):
-                print(y/mxy.shape[2]*100, "%")
-                for x in range(mxy.shape[3]):
-                    b = self._array[:, 0, y, x, self.comp]
-                    a = self._doFFT(b
-                                    )
-                    self.MFft[:, 0, y, x, self.comp] = a
+            self.MFft=np.average(self.MFft[:, z, y, x, self.comp], axis=1)
+            self.keep_size(self.MFft, _axis)
         return self.MFft
+        # if self.eachZ == True:
+        #     for x in range(mxy.shape[3]):
+        #         print(x/mxy.shape[2]*100, "%")
+        #         for y in range(mxy.shape[2]):
+        #             for z in range(mxy.shape[1]):
+        #                 b = self._array[:, z, y, x, self.comp]
+        #                 a = self._doFFT(b
+        #                                 )
+        #                 self.MFft[:, z, y, x, self.comp] = a
+        # else:
+        #     for y in range(mxy.shape[2]):
+        #         print(y/mxy.shape[2]*100, "%")
+        #         for x in range(mxy.shape[3]):
+        #             b = self._array[:, 0, y, x, self.comp]
+        #             a = self._doFFT(b
+        #                             )
+        #             self.MFft[:, 0, y, x, self.comp] = a
+        # return self.MFft
 
     def keep_size(self, m, comp=1):
         tshape = list(self._array.shape)
@@ -71,13 +82,20 @@ class Fft:
 
     def average_magnetization(self):
 
-        _axis = self.selectAxis
+        _axis = self.unSelectAxis
 
         _mag = np.average(self._array[:, :, :, :, self.comp], axis=_axis)
 
         return self.keep_size(_mag,_axis)
 
     def run_fft_for_spectrum(self):
+
+        ###
+        #Do zrobienia:
+        #1. Multiprocessing
+        #2. Redukcja zużycia pamięci
+        #3. Testowanie
+        ###
 
         _data = self.average_magnetization()
 
@@ -86,7 +104,6 @@ class Fft:
         for z in range(_data.shape[1]):
             for y in range(_data.shape[2]):
                 for x in range(_data.shape[3]):
-                    print(z,y,x)
                     _spectrum.append(self._doFFT(_data[:,z,y,x]))
         _spectrum = np.array(_spectrum)
         _spectrum = np.average(np.array(_spectrum),axis=0)

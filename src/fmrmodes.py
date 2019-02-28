@@ -3,7 +3,7 @@ import parameters
 import fft
 import numpy as np
 import matplotlib.pyplot as plt
-# import peakutils
+import peakutils
 
 class FMRModes(fft.Fft):
         
@@ -19,26 +19,30 @@ class FMRModes(fft.Fft):
         # self.eachY = eachY
         # self.eachZ = eachZ   
 
-    def calculateModes(self, copyarray=False, eachX=False, eachY=False, eachZ=False, comp=2, window=None):
+    @property
+    def check_component(self):
+        if self._array.shape[-1] == 1:
+            return 0
+
+    def calculateModes(self, copyarray=False, eachZ=False, comp=2, window=None):
         
         super().__init__()
         
-        self.eachX = eachX
-        self.eachY = eachY
+        self.eachX = True
+        self.eachY = True
         self.eachZ = eachZ
-        self.comp = comp
+
+        self.comp = self.check_component
+
         self.window = window
 
 
         Mfft = self.run_fft_for_modes()
 
-        indexes = peakutils.indexes(Mfft, thres=0.5, min_dist=Mfft.shape[0]/300)
-
-
-        print(indexes)
-
-        return Mfft,indexes
+        return Mfft
         
+    def peaks(self, data, thres=0.5, min_dist=30):
+        return peakutils.indexes(np.abs(data), thres, min_dist)
         
     
 

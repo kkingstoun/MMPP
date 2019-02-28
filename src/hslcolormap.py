@@ -2,6 +2,9 @@ import numpy as np
 import colorsys
 
 class Hslcolormap():
+#Obsługa tylko 3-składowych danych wejściowych
+#Tutaj jest dużo do poprawki, zrobione na szybko
+
 
     @staticmethod
     def hue_to_rgb(p, q, t):
@@ -31,19 +34,13 @@ class Hslcolormap():
         M_szer_N = np.zeros([self.shape[1], self.shape[0], 3])
         print(M_szer_N.shape)
 
-        # print(M_szer_0.T.shape)
-        # print(M_szer_0.T[0, 0])
-        # print(M_szer_N.shape)
-
         for x in range(self.shape[1]):
             for y in range(self.shape[0]):
 
-                # print(x,y)
-                cords = self[y, x]
+                c_z = self[y, x][2]
+                c_x = self[y, x][1]
+                c_y = self[y, x][0]
 
-                c_x = cords[1]
-                c_y = cords[0]
-                c_z = cords[2]
 
                 angle = np.arctan2(c_x, c_y)*180/np.pi
 
@@ -69,5 +66,5 @@ class Hslcolormap():
                     M_szer_N[x, y, :] = (0.3, 0.3, 0.3)
                 else:
                     M_szer_N[x, y, :] = color
-                # print(color)
+
         return(M_szer_N)

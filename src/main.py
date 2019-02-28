@@ -7,7 +7,7 @@ from hslcolormap import Hslcolormap
 class prepareplot():
     def __init__(self,shape):
         self.fig = plt.figure()
-        
+
 
 if __name__ == "__main__":
     parms = parameters.ovfParms(head="m_y",comp=0)
@@ -20,12 +20,12 @@ if __name__ == "__main__":
 
     # mtzyxc.save("C:/Users/Mateusz/Desktop/Radek/circular_10.out2/arr.npz")
 
-    mtzyxc.fmrspectrum(window="hanning", eachX=True,
-                       eachY=True, eachZ=False, comp=2)
+    mtzyxc.fmrspectrum(window="hanning", eachZ=False, comp=2)
 
     peaks = mtzyxc.peaks(mtzyxc.fmrspectrum, thres=0.0125, min_dist=5)
 
-    plt.plot(mtzyxc.fmrfreq, np.abs(
+    ax1 = plt.subplot(2,1,1)
+    ax1.plot(mtzyxc.fmrfreq, np.abs(
         mtzyxc.fmrspectrum))
     for x in peaks:
         plt.axvline(mtzyxc.fmrfreq[x])
@@ -33,8 +33,9 @@ if __name__ == "__main__":
 
     # M_szer_0 = Hslcolormap.TransformToColor(mtzyxc._array[100, 1, :, :, :])
     
+    # ax2 = plt.subplot(3, 1, 2)
 
-    # plt.imshow(M_szer_0,
+    # ax2.imshow(M_szer_0,
     #            origin="lower",
     #                        aspect="equal")
 
@@ -57,25 +58,13 @@ if __name__ == "__main__":
     #                 # scale=1/10
     #                )
 
-    # plt.plot(spectrum. )11
-    # modes, peaks, = mtzyxc.calculateModes(eachX=True, eachY=True, comp=0, window="hanning")
-    # vm.calculateModes()
+    modes = mtzyxc.calculateModes(eachZ=False, comp=0, window="hanning")
 
-    # print(peaks)
+    ax2 = plt.subplot(2, 1, 2)
+    ax2.imshow(np.abs(modes[peaks[3], 0, :, :, 0]),
+                origin="lower",
+                aspect="equal")
 
-    # ax1 = plt.subplot(211)
-    # x = np.fft.rfftfreq(mtzyxc._array.shape[0], 2e-11)
-    # y = np.abs(np.average(modes[:, 0, :, :, 0], axis=(1, 2)))
-    # print(y.shape)
-    # # y = self.MFft
-    # # print(y.shape)
-    # plt.plot(y)
-    # # print(y)
-    # ax2 = plt.subplot(212)
-
-    # ax2.imshow(np.abs(modes[105, 0, :, :, 0]),
-    #             origin="lower",
-    #             aspect="equal")
 
     # parms = parameters.ovfParms()
 
