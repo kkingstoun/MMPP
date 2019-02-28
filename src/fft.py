@@ -50,16 +50,18 @@ class Fft:
         for z in range(_data.shape[1]):
             for y in range(_data.shape[2]):
                 for x in range(_data.shape[3]):
-                    self.MFft[:, z, y, x, self.comp] = self._doFFT(_data[:, z, y, x])
+                    a = _data[:, z, y, x, self.comp]
+                    self.MFft[:, z, y, x, self.comp] = self._doFFT(a)
         if self.eachZ == True:
             self.MFft=np.average(self.MFft[:, z, y, x, self.comp], axis=1)
             self.keep_size(self.MFft, _axis)
         return self.MFft
 
-    def keep_size(self, m, comp=1):
+    def keep_size(self, m, axis=1):
         tshape = list(self._array.shape)
-        for c in comp:
-            tshape[c] = 1
+        for ax in axis:
+            tshape[ax] = 1
+        tshape[-1]=1
         m = m.reshape(tshape)
         return m
 

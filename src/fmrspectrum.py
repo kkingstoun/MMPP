@@ -8,10 +8,11 @@ class FMRSpectrum(fft.Fft):
     def __init__(self):
         pass
 
-    @property
-    def check_component(self):
+    def check_component(self,comp):
         if self._array.shape[-1] == 1:
             return 0
+        else:
+            return comp
 
     def fmrspectrum(self, comp=2, eachX=False, eachY=False, eachZ=False, window=None):
 
@@ -20,7 +21,7 @@ class FMRSpectrum(fft.Fft):
         self.eachX = eachX
         self.eachY = eachY
         self.eachZ = eachZ
-        self.comp = self.check_component
+        self.comp = self.check_component(comp)
         self.window = window
         self.fmrspectrum, self.fmrfreq = self.run_fft_for_spectrum()
 

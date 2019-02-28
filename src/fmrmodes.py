@@ -19,10 +19,12 @@ class FMRModes(fft.Fft):
         # self.eachY = eachY
         # self.eachZ = eachZ   
 
-    @property
-    def check_component(self):
+    def check_component(self, comp):
         if self._array.shape[-1] == 1:
             return 0
+        else:
+            return comp
+        
 
     def calculateModes(self, copyarray=False, eachZ=False, comp=2, window=None):
         
@@ -32,7 +34,7 @@ class FMRModes(fft.Fft):
         self.eachY = True
         self.eachZ = eachZ
 
-        self.comp = self.check_component
+        self.comp = self.check_component(comp)
 
         self.window = window
 

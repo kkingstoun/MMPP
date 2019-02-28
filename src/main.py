@@ -3,22 +3,22 @@ from ovf import OvfFile
 from prepareplot import Prepareplot
 
 if __name__ == "__main__":
-    parms = parameters.ovfParms(head="m_y", comp=0)
+    parms = parameters.ovfParms(head="m", comp=0)
 
     # mtzyxc = OvfFile(
     #     r"E:/arr.npz", parms)
 
     mtzyxc = OvfFile(
-        "C:/Users/Mateusz/Desktop/Radek/circular_10.out2/arr.npz", parms)
+        "C:/Users/Mateusz/Desktop/Radek/nowe/abc/arr.npz", parms)
 
-    # mtzyxc.save("C:/Users/Mateusz/Desktop/Radek/circular_10.out2/arr.npz")
+    # mtzyxc.save("C:/Users/Mateusz/Desktop/Radek/nowe/abc/arr.npz")
 
     mtzyxc.fmrspectrum(window="hanning", eachZ=False, comp=2)
 
     peaks = mtzyxc.peaks(mtzyxc.fmrspectrum, thres=0.009, min_dist=2.5)
 
     p = Prepareplot(mtzyxc, peaks)
-    p.plot_modes("C:/Users/Mateusz/Desktop/Radek/circular_10.out2/")
+    p.plot_modes("C:/Users/Mateusz/Desktop/Radek/nowe/abc")
 
 
 
