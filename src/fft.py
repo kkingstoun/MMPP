@@ -11,7 +11,8 @@ class Fft:
                     self.mtzyxc.array[:, 0, y, x, 0])
 
     def _doFFT(self, arr):
-        #Gdzieś  jest błąd, przez który muszę wywoływać arr[:,0]
+        # TODO
+        # Gdzieś  jest błąd, przez który muszę wywoływać arr[:,0]
         return  np.fft.rfft(arr[:, 0]*self.get_window(len(arr[:, 0])))
         
 
@@ -43,7 +44,7 @@ class Fft:
     def run_fft_for_modes(self):
         _shape = self._array.shape
         self.MFft = np.zeros(
-            (math.ceil(_shape[0]/2), _shape[1], _shape[2], _shape[3], _shape[4]))
+            (math.ceil(_shape[0]/2), _shape[1], _shape[2], _shape[3], _shape[4]),dtype=np.complex64)
         _axis = self.unSelectAxis   
         _data = self.average_magnetization()
         for z in range(_data.shape[1]):
@@ -54,24 +55,6 @@ class Fft:
             self.MFft=np.average(self.MFft[:, z, y, x, self.comp], axis=1)
             self.keep_size(self.MFft, _axis)
         return self.MFft
-        # if self.eachZ == True:
-        #     for x in range(mxy.shape[3]):
-        #         print(x/mxy.shape[2]*100, "%")
-        #         for y in range(mxy.shape[2]):
-        #             for z in range(mxy.shape[1]):
-        #                 b = self._array[:, z, y, x, self.comp]
-        #                 a = self._doFFT(b
-        #                                 )
-        #                 self.MFft[:, z, y, x, self.comp] = a
-        # else:
-        #     for y in range(mxy.shape[2]):
-        #         print(y/mxy.shape[2]*100, "%")
-        #         for x in range(mxy.shape[3]):
-        #             b = self._array[:, 0, y, x, self.comp]
-        #             a = self._doFFT(b
-        #                             )
-        #             self.MFft[:, 0, y, x, self.comp] = a
-        # return self.MFft
 
     def keep_size(self, m, comp=1):
         tshape = list(self._array.shape)
@@ -91,10 +74,10 @@ class Fft:
     def run_fft_for_spectrum(self):
 
         ###
-        #Do zrobienia:
-        #1. Multiprocessing
-        #2. Redukcja zużycia pamięci
-        #3. Testowanie
+        # TODO:
+        # 1. Multiprocessing
+        # 2. Redukcja zużycia pamięci
+        # 3. Testowanie
         ###
 
         _data = self.average_magnetization()

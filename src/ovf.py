@@ -114,7 +114,7 @@ class OvfFile(FMRModes,FMRSpectrum):
     def load(self, path):
         with np.load(path) as data:
             self._array = data["array"]
-            self._headers = data["headers"]
+            self._headers = data["headers"][()]
             self._path = data["path"]
             self._time = data["time"]
         print("Data loaded successfully from  ", path)

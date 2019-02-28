@@ -23,7 +23,7 @@ class FMRSpectrum(fft.Fft):
         self.comp = self.check_component
         self.window = window
         self.fmrspectrum, self.fmrfreq = self.run_fft_for_spectrum()
-    
+
     # @property
     def peaks(self, data, thres=0.5, min_dist=30):
         return peakutils.indexes(np.abs(data), thres, min_dist)
