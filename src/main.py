@@ -1,24 +1,34 @@
 import parameters
 from ovf import OvfFile
 from prepareplot import Prepareplot
+from marray import Marray
 
 if __name__ == "__main__":
     parms = parameters.ovfParms(head="m", comp=0)
 
     # mtzyxc = OvfFile(
     #     r"E:/arr.npz", parms)
+    
+    mtzyxc = Marray("E:/Mumax3-Projekty/Radek/Rect/", parms)
 
-    mtzyxc = OvfFile(
-        "C:/Users/Mateusz/Desktop/Radek/nowe/abc/arr.npz", parms)
+    print("As")
+    # mtzyxc = OvfFile(
+    #     "E:/Mumax3-Projekty/Radek/Rect/", parms)
 
-    # mtzyxc.save("C:/Users/Mateusz/Desktop/Radek/nowe/abc/arr.npz")
+    # mtzyxc = OvfFile(
+    #     "E:/Mumax3-Projekty/Radek/Rect/arr.npz", parms)
 
-    mtzyxc.fmrspectrum(window="hanning", eachZ=False, comp=2)
+    # mtzyxc.save()
+    
+    # mtzyxc.fmrspectrum(window="hanning", eachZ=False, comp=0)
+    # mtzyxc.x().fmrspectrum(window="hanning", eachZ=False)
 
-    peaks = mtzyxc.peaks(mtzyxc.fmrspectrum, thres=0.009, min_dist=2.5)
+    # mtzyx.c=
 
-    p = Prepareplot(mtzyxc, peaks)
-    p.plot_modes("C:/Users/Mateusz/Desktop/Radek/nowe/abc")
+    # peaks = mtzyxc.peaks(mtzyxc.fmrspectrum, thres=0.009, min_dist=2.5)
+
+    # p = Prepareplot(mtzyxc, peaks)
+    # p.plot_modes("C:/Users/Mateusz/Desktop/Radek/nowe/abc")
 
 
 

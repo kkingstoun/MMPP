@@ -106,7 +106,9 @@ class OvfFile(FMRModes,FMRSpectrum):
                                    self._parms.getParms["yStart"]:self._parms.getParms["yStop"],
                                    self._parms.getParms["xStart"]:self._parms.getParms["xStop"],
                                    :], _headers, _time
-    def save(self, path):
+    def save(self, path=None):
+        if path == None:
+            path = os.path.dirname(os.path.realpath(self._path)) + "arr.npz"
         np.savez(path, array=self._array, headers=self._headers,
                             path=self._path, time=self._time)
         print("Data saved to the ", path)
@@ -127,3 +129,19 @@ class OvfFile(FMRModes,FMRSpectrum):
     def geom_shape(self):
         a = self._array.shape
         return(a[1:4])
+
+    @property
+    def x(self):
+        return self._array[:,:,:,:,2]
+
+    @property
+    def y(self):
+        return self._array[:, :, :, :, 1]
+
+    @property
+    def z(self):
+        return self._array[:, :, :, :, 0]
+
+    @property
+    def c(self):
+        return self._array[:, :, :, :, :]
