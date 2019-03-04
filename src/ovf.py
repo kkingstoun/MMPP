@@ -11,25 +11,24 @@ import numpy as np
 import glob
 import re
 import multiprocessing as mp
-from fmrmodes import FMRModes
-from fmrspectrum import FMRSpectrum
 
-class OvfFile(FMRModes,FMRSpectrum):
+
+class OvfFile():
     def __init__(self, path, parms=None):
         super().__init__()
         self._path = path
+        self._parms = parms
+        self.get_data()
+
+    def get_data(self):
         if self._path.split(".")[-1] == "npz":
             self.load(self._path)
         else:
-            self._parms = parms
             if os.path.isdir(self._path):
-                self.file_list = self.get_files_names()
-                # self._headers, self._time = self.catch_headers(self.file_list[0])
-                # self.array_size = self.get_array_size()
                 self._array, self._headers, self._time = self.__readDir()
             else:
-                # self.array_size = self.get_array_size()
-                self._array, self._headers, self._time = self.parse_file(self._path)
+                self._array, self._headers, self._time = self.parse_file(
+                    self._path)
 
     @staticmethod
     def getKey(filename):
@@ -49,9 +48,7 @@ class OvfFile(FMRModes,FMRSpectrum):
                 time = float(a.split(":")[-1].strip().split()[0].strip())
         return headers, time
 
-
     def get_array_size(self):
-        # TODO: int conversion should be done in catch_headers if it's needed everywhere
         znodes = int(self._headers['znodes'])
         ynodes = int(self._headers['ynodes'])
         xnodes = int(self._headers['xnodes'])
@@ -59,18 +56,20 @@ class OvfFile(FMRModes,FMRSpectrum):
         return xnodes*ynodes*znodes*nOfComp+1
 
     def __readDir(self):
+        file_list = self.get_files_names()
+
         print("Reading folder: " + self._path+"/" +
               self._parms.getParms["head"] + '*.ovf')
-        print("N of files to process: ", len(self.file_list))
+        print("N of files to process: ", len(file_list))
         print("Available nodes (n-1): " + str(int(mp.cpu_count()-1)))
+
         pool = mp.Pool(processes=int(mp.cpu_count()-1))
 
-        # func = partial(self.parse_file)
-        array, headers, time = zip(*pool.map(self.parse_file, self.file_list))
+        array, headers, time = zip(*pool.map(self.parse_file, file_list))
         pool.close()
         pool.join()
-        array = np.array(array).reshape([
-            len(self.file_list),
+        array = np.array(array, dtype=np.float32).reshape([
+            len(file_list),
             int(headers[0]["znodes"]),
             int(headers[0]["ynodes"]),
             int(headers[0]["xnodes"]),
@@ -89,30 +88,33 @@ class OvfFile(FMRModes,FMRSpectrum):
     def parse_file(self, path):
         with open(path, 'rb') as f:
             _headers, _time = self.catch_headers(f)
-            
+
             znodes = int(_headers['znodes'])
             ynodes = int(_headers['ynodes'])
             xnodes = int(_headers['xnodes'])
             nOfComp = int(_headers['valuedim'])
-            
-            outArray = np.fromfile(f, '<f', count=int(
+
+            outArray = np.fromfile(f, '<f4', count=int(
                 xnodes*ynodes*znodes*nOfComp+1))
 
             outArray = outArray[1:].reshape(1,
-                    int(_headers['znodes']), int(_headers['ynodes']), 
-                    int(_headers['xnodes']), int(_headers['valuedim']))
+                                            int(_headers['znodes']), 
+                                            int(_headers['ynodes']),
+                                            int(_headers['xnodes']), 
+                                            int(_headers['valuedim']))
 
             return outArray[self._parms.getParms["zStart"]:self._parms.getParms["zStop"],
-                                   self._parms.getParms["yStart"]:self._parms.getParms["yStop"],
-                                   self._parms.getParms["xStart"]:self._parms.getParms["xStop"],
-                                   :], _headers, _time
+                            self._parms.getParms["yStart"]:self._parms.getParms["yStop"],
+                            self._parms.getParms["xStart"]:self._parms.getParms["xStop"],
+                            :], _headers, _time
+
     def save(self, path=None):
         if path == None:
             path = os.path.dirname(os.path.realpath(self._path)) + "arr.npz"
         np.savez(path, array=self._array, headers=self._headers,
-                            path=self._path, time=self._time)
+                 path=self._path, time=self._time)
         print("Data saved to the ", path)
-    
+
     def load(self, path):
         with np.load(path) as data:
             self._array = data["array"]
@@ -129,19 +131,3 @@ class OvfFile(FMRModes,FMRSpectrum):
     def geom_shape(self):
         a = self._array.shape
         return(a[1:4])
-
-    @property
-    def x(self):
-        return self._array[:,:,:,:,2]
-
-    @property
-    def y(self):
-        return self._array[:, :, :, :, 1]
-
-    @property
-    def z(self):
-        return self._array[:, :, :, :, 0]
-
-    @property
-    def c(self):
-        return self._array[:, :, :, :, :]
