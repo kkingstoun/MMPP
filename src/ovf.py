@@ -15,7 +15,6 @@ import multiprocessing as mp
 
 class OvfFile():
     def __init__(self, path, parms=None):
-        super().__init__()
         self._path = path
         self._parms = parms
         self.get_data()
@@ -110,7 +109,7 @@ class OvfFile():
 
     def save(self, path=None):
         if path == None:
-            path = os.path.dirname(os.path.realpath(self._path)) + "arr.npz"
+            path = os.path.dirname(os.path.realpath(self._path)) + "/arr.npz"
         np.savez(path, array=self._array, headers=self._headers,
                  path=self._path, time=self._time)
         print("Data saved to the ", path)

@@ -13,7 +13,7 @@ class Fft:
     def _doFFT(self, arr):
         # TODO
         # Gdzieś  jest błąd, przez który muszę wywoływać arr[:,0]
-        return  np.fft.rfft(arr[:, 0]*self.get_window(len(arr[:, 0])))
+        return  np.fft.rfft(arr*self.get_window(len(arr)))
         
 
     def __init__(self):
@@ -58,7 +58,7 @@ class Fft:
         return self.MFft
 
     def keep_size(self, m, axis=1):
-        tshape = list(self._array.shape)
+        tshape = list(self._data._array.shape)
         for ax in axis:
             tshape[ax] = 1
         tshape[-1]=1
@@ -69,18 +69,11 @@ class Fft:
 
         _axis = self.unSelectAxis
 
-        _mag = np.average(self._array[:, :, :, :, self.comp], axis=_axis)
+        _mag = np.average(self._data._array[:, :, :, :, self.comp], axis=_axis)
 
         return self.keep_size(_mag,_axis)
 
     def run_fft_for_spectrum(self):
-
-        ###
-        # TODO:
-        # 1. Multiprocessing
-        # 2. Redukcja zużycia pamięci
-        # 3. Testowanie
-        ###
 
         _data = self.average_magnetization()
 
@@ -89,10 +82,20 @@ class Fft:
         for z in range(_data.shape[1]):
             for y in range(_data.shape[2]):
                 for x in range(_data.shape[3]):
-                    _spectrum.append(self._doFFT(_data[:,z,y,x]))
+                    if self.zero_padding == True:
+                        arr = _data[:, z, y, x]
+                        arr = np.pad(
+                            arr, (0, 1024 - len(arr) % 1024), 'constant')
+                    else:
+                        arr = _data[:, z, y, x]
+                    _spectrum.append(self._doFFT(arr))
         _spectrum = np.array(_spectrum)
         _spectrum = np.average(np.array(_spectrum),axis=0)
 
-        _frequencies = np.fft.rfftfreq(self._array.shape[0], self.avgtime)
+        if self.zero_padding == True:
+            time = self._data._time.size + 1024 - self._data._time.size % 1024
+        else:
+            time = self._data._time.size
+        _frequencies = np.fft.rfftfreq(time, self._data.avgtime)
 
-        return _spectrum, _frequencies
+        return _frequencies, _spectrum
