@@ -101,7 +101,7 @@ class OvfFile():
                                             int(_headers['ynodes']),
                                             int(_headers['xnodes']), 
                                             int(_headers['valuedim']))
-
+                                            
             return outArray[self._parms.getParms["zStart"]:self._parms.getParms["zStop"],
                             self._parms.getParms["yStart"]:self._parms.getParms["yStop"],
                             self._parms.getParms["xStart"]:self._parms.getParms["xStop"],

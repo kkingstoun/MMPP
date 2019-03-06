@@ -1,20 +1,77 @@
 import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
-from matplotlib import rcParams
+# from matplotlib import rcParams
 from hslcolormap import Hslcolormap
 import cmocean
+import random
 import matplotlib.style as style
-matplotlib.rcParams['mathtext.fontset'] = 'stix'
-matplotlib.rcParams['text.latex.unicode'] = True
-matplotlib.rcParams['font.family'] = 'sans-serif'
-matplotlib.rcParams['font.sans-serif'] = ['Tahoma']
+# matplotlib.rcParams['mathtext.fontset'] = 'stix'
+# matplotlib.rcParams['text.latex.unicode'] = True
+# matplotlib.rcParams['font.family'] = 'sans-serif'
+# matplotlib.rcParams['font.sans-serif'] = ['Tahoma']
+
+class SubPlot():
+    def __init__(self, ptype, data, freq = None):
+        self.title = None
+        self._data = data
+        self._freq = freq
+        self._ptype = ptype
 
 
-class Prepareplot():
-    def __init__(self, mtzyxc, peaks):
-        self.mtzyxc = mtzyxc
-        self.peaks = peaks
+        self.result = None
+
+    def select_plot(self,ax):
+        if self._ptype is "plot":
+            self.prepare_plot(ax)
+        elif self._ptype is "imshow":
+            self.prepare_imshow(ax)
+        else:
+            pass
+    def prepare_plot(self,ax):
+        return ax.plot(self._data[0], np.abs(self._data[1]))
+        
+    def prepare_imshow(self,ax):
+        
+        return ax.imshow(np.abs(self._data[1][self._freq,:,:]))
+
+    def get(self,ax):
+        self.select_plot(ax)
+
+    def make(self, acction):
+        self.ax = acction
+
+
+class PreparePlot():
+    def __init__(self, lpx, lpy):
+        self.fig, self.axes = plt.subplots(lpx*lpy)
+        self.grid = plt.GridSpec(lpx, lpy, wspace=0.4, hspace=0.3)
+
+
+    def def_add_element(self, data, par1 = None):
+        self.axes.append()
+
+    def place(self, obj, axis):
+# 
+        # _ax = plt.subplot( self.grid[0: None, None : 1] )
+        print(axis[0], ":", axis[1], axis[2],":", axis[3])
+        _ax = plt.subplot( self.grid[axis[0] : axis[1], axis[2] : axis[3]] )
+        _ax = obj.get(_ax)
+        # _ax 
+        
+        # self.axes[0]=obj.ax
+
+    # def add_plot(self, axes=None, data_x, data_y):
+    #     ax = plt.subplot(grid[axes])
+    #     ax1.set_title("Frequency " +
+    #                   str(np.round(self.mtzyxc.fmrfreq[x]/1e9, 3)) + " GHz")
+
+    #     self.axes.append(ax)
+
+    def show(self):
+        plt.plot
+        plt.show()
+
 
     def plot_modes(self, path):
         for x in self.peaks:

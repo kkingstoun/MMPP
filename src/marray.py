@@ -5,7 +5,8 @@ import numpy as np
 import random
 import copy
 
-class Marray(FMRSpectrum):
+
+class Marray(FMRSpectrum, FMRModes):
     def __init__(self, path=None, parms=None, data=None, axis=None):
         # super().__init__()
         self.name=str(random.randint(0,10))
@@ -21,21 +22,32 @@ class Marray(FMRSpectrum):
     def save(self):
         self._data.save()
 
+    @property
+    def check_component(self):
+        if self._data._array.shape[-1] is 1:
+            return True
+
     def x(self, copy=False):
-        if copy is False:
-            self._data._array = self._data._array[:, :, :, :, 2]
+        if self.check_component is True:
             return(self)
         else:
-            return Marray(data=self._data, axis=2, path=self._path, parms=self._parms)
+            if copy is False:
+                self._data._array = self._data._array[:, :, :, :, 2]
+                return(self)
+            else:
+                return Marray(data=self._data, axis=2, path=self._path, parms=self._parms)
 
     def y(self, copy=False):
-        if copy is False:
-            self._data._array = self._data._array[:, :, :, :, 1]
-            return(self)
+        if self.check_component is True:
+                return(self)
         else:
-            print("As")
-            b = Marray(data=self._data, axis=1, path=self._path, parms=self._parms)
-            return b
+            if copy is False:
+                self._data._array = self._data._array[:, :, :, :, 1]
+                return(self)
+            else:
+                print("As")
+                return Marray(data=self._data, axis=1, path=self._path, parms=self._parms)
+                
 
     def z(self, copy=False):
         if copy is False:
