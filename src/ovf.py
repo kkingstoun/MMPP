@@ -24,14 +24,10 @@ class OvfFile():
             self.load(self._path)
         else:
             if os.path.isdir(self._path):
-                self._array, self._headers, self._time = self.__readDir()
+                self.array, self._headers, self.time = self.__readDir()
             else:
-                self._array, self._headers, self._time = self.parse_file(
+                self.array, self._headers, self.time = self.parse_file(
                     self._path)
-
-    @staticmethod
-    def getKey(filename):
-        return int(re.findall(r'\d+', filename)[-1])
 
     def catch_headers(self, f):
         headers = {}
@@ -47,7 +43,7 @@ class OvfFile():
                 time = float(a.split(":")[-1].strip().split()[0].strip())
         return headers, time
 
-    def get_array_size(self):
+    def getarray_size(self):
         znodes = int(self._headers['znodes'])
         ynodes = int(self._headers['ynodes'])
         xnodes = int(self._headers['xnodes'])
@@ -84,9 +80,13 @@ class OvfFile():
         return sorted(file_list, key=self.getKey)[
             self._parms.getParms["tStart"]:self._parms.getParms["tStop"]]
 
+    @staticmethod
+    def getKey(filename):
+        return int(re.findall(r'\d+', filename)[-1])
+
     def parse_file(self, path):
         with open(path, 'rb') as f:
-            _headers, _time = self.catch_headers(f)
+            _headers, time = self.catch_headers(f)
 
             znodes = int(_headers['znodes'])
             ynodes = int(_headers['ynodes'])
@@ -97,36 +97,36 @@ class OvfFile():
                 xnodes*ynodes*znodes*nOfComp+1))
 
             outArray = outArray[1:].reshape(1,
-                                            int(_headers['znodes']), 
+                                            int(_headers['znodes']),
                                             int(_headers['ynodes']),
-                                            int(_headers['xnodes']), 
+                                            int(_headers['xnodes']),
                                             int(_headers['valuedim']))
-                                            
+
             return outArray[self._parms.getParms["zStart"]:self._parms.getParms["zStop"],
                             self._parms.getParms["yStart"]:self._parms.getParms["yStop"],
                             self._parms.getParms["xStart"]:self._parms.getParms["xStop"],
-                            :], _headers, _time
+                            :], _headers, time
 
     def save(self, path=None):
         if path == None:
             path = os.path.dirname(os.path.realpath(self._path)) + "/arr.npz"
-        np.savez(path, array=self._array, headers=self._headers,
-                 path=self._path, time=self._time)
+        np.savez(path, array=self.array, headers=self._headers,
+                 path=self._path, time=self.time)
         print("Data saved to the ", path)
 
     def load(self, path):
         with np.load(path) as data:
-            self._array = data["array"]
+            self.array = data["array"]
             self._headers = data["headers"][()]
             self._path = data["path"]
-            self._time = data["time"]
+            self.time = data["time"]
         print("Data loaded successfully from  ", path)
 
     @property
     def avgtime(self):
-        return (self._time[-1]-self._time[0])/len(self._time)
+        return (self.time[-1]-self.time[0])/len(self.time)
 
     @property
     def geom_shape(self):
-        a = self._array.shape
+        a = self.array.shape
         return(a[1:4])

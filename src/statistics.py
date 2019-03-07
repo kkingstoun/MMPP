@@ -3,6 +3,7 @@ import linecache
 import os
 import tracemalloc
 
+
 class Statistics:
     def __init__(self):
         self.trace = tracemalloc
@@ -21,7 +22,7 @@ class Statistics:
             # replace "/path/to/module/file.py" with "module/file.py"
             filename = os.sep.join(frame.filename.split(os.sep)[-2:])
             print("#%s: %s:%s: %s KiB"
-                % (index, filename, frame.lineno, self.convert_size(stat.size)))
+                  % (index, filename, frame.lineno, self.convert_size(stat.size)))
             line = linecache.getline(frame.filename, frame.lineno).strip()
             if line:
                 print('%s' % line)
@@ -32,7 +33,6 @@ class Statistics:
             print("%s other: %s KiB" % (len(other), self.convert_size(size)))
         total = sum(stat.size for stat in top_stats)
         print("Total allocated size: %s " % self.convert_size(total))
-
 
     def convert_size(self, size_bytes):
         if size_bytes == 0:
