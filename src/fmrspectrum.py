@@ -21,9 +21,10 @@ class FMRSpectrum(fft.Fft):
 		self.frequencies, self.spectrum = self.run_fft_for_spectrum(marray.data)
 		# return(self.frequencies, self.mods)
 
-	def peaks(self, data, thres=0.5, min_dist=30):
-		self.peak_list = peakutils.indexes(np.abs(data), thres, min_dist)
-		return self.peak_list
+	def peaks(self, thres=0.5, min_dist=30):
+		peak_list = peakutils.indexes(
+			np.abs(self.spectrum), thres, min_dist)
+		return peak_list
 
 	def load(self, path):
 		with np.load(path) as data:

@@ -27,7 +27,7 @@ class FMRmods(fft.Fft):
 		self.zero_padding = zero_padd
 		self.window = window
 		self.frequencies, self.mods = self.run_fft_for_mods(marray.data)
-			
+		
 	def load(self, path):
 		with np.load(path) as data:
 			self.mods = data["mods"]

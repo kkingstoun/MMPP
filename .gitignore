@@ -25,6 +25,8 @@ pip-wheel-metadata/
 share/python-wheels/
 *.egg-info/
 .installed.cfg
+test*.py
+*_copy.py
 *.egg
 *.xml
 *.iml
