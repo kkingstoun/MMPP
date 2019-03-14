@@ -22,9 +22,6 @@ class Marray():
             else:
                 self.data.array = self.data.array[:, :, :, :, comp:comp+1]
 
-    def save(self):
-        self.data.save()
-
     @property
     def check_component(self):
         if self.data.array.shape[-1] is 1:
