@@ -43,19 +43,6 @@ class OvfFile:
         with np.load(path) as data:
             return data["array"], data["headers"][()], data["path"]
 
-    def catch_headers(self, file):
-        headers = {}
-        capture_keys = ("xmin:", "ymin:", "zmin:", "xmin:", "ymin:", "zmin:", "xstepsize:",
-                        "ystepsize:", "zstepsize:", "xnodes:", "ynodes:", "znodes:", "valuedim:", "Desc:")
-        while True:
-            a = file.readline().strip().decode('ASCII')
-            a = a.split()
-            if a[1] in capture_keys:
-                headers[a[1][:-1]] = float(a[-2]) if a[-1] is 's' else float(a[-1])
-            elif a[2] == 'Data':
-                break
-        return headers
-
     def parse_dir(self):
         file_list = self.get_files_names()
 
@@ -84,7 +71,7 @@ class OvfFile:
         file_list = glob.glob(
             self._path + "/" + self._parms.getParms["head"] + '*.ovf')[
                     ::self._parms.getParms["nStep"]]  # files filtering
-        return sorted(file_list, key=self.getKey)[
+        return sorted(file_list, key=lambda x: int(re.findall(r'\d+', x)[-1]))[
                self._parms.getParms["tStart"]:self._parms.getParms["tStop"]]
 
     def load_file(self, path):
@@ -92,6 +79,19 @@ class OvfFile:
             a = self.catch_headers(f)
             out_arr = np.fromfile(f, '<f4', count=int(a['znodes'] * a['ynodes'] * a['xnodes'] * a['valuedim'] + 1))
             return out_arr[1:], a
+
+    def catch_headers(self, file):
+        headers = {}
+        capture_keys = ("xmin:", "ymin:", "zmin:", "xmin:", "ymin:", "zmin:", "xstepsize:",
+                        "ystepsize:", "zstepsize:", "xnodes:", "ynodes:", "znodes:", "valuedim:", "Desc:")
+        while True:
+            a = file.readline().strip().decode('ASCII')
+            a = a.split()
+            if a[1] in capture_keys:
+                headers[a[1][:-1]] = float(a[-2]) if a[-1] is 's' else float(a[-1])
+            elif a[2] == 'Data':
+                break
+        return headers
 
     def parse_array(self, arr):
         return arr.reshape(1,
@@ -107,10 +107,6 @@ class OvfFile:
         nOfComp = int(self.headers['valuedim'])
         return xnodes * ynodes * znodes * nOfComp + 1
 
-    @staticmethod
-    def getKey(filename):
-        return int(re.findall(r'\d+', filename)[-1])
-
     def save(self, path=None):
         if path is None:
             path = os.path.dirname(os.path.realpath(self._path)) + "/arr.npz"
@@ -120,14 +116,15 @@ class OvfFile:
 
     @property
     def avgtime(self):
-        return (self.time[-1] - self.time[0]) / len(self.time)
+        if os.path.isdir(self._path):
+            return (self.time[-1] - self.time[0]) / len(self.time)
+        else:
+            return self.time
 
     @property
     def shape(self):
         return self.array.shape
 
-    def __len__(self):
-        return self.geom_shape
 
     @property
     def geom_shape(self):
@@ -147,4 +144,5 @@ class OvfFile:
 
 
 if __name__ == "__main__":
-    OvfFile('/home/szymag/python/Post-processing-tool-for-Mumax3/example_data')
+    pass
+
