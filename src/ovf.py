@@ -123,8 +123,27 @@ class OvfFile:
         return (self.time[-1] - self.time[0]) / len(self.time)
 
     @property
+    def shape(self):
+        return self.array.shape
+
+    def __len__(self):
+        return self.geom_shape
+
+    @property
     def geom_shape(self):
         return self.array.shape[1:4]
+
+    @property
+    def x(self):
+        return self.array[0, 0, :, :0]
+
+    @property
+    def y(self):
+        return self.array[0, 0, :, :1]
+
+    @property
+    def z(self):
+        return self.array[0, 0, :, :2]
 
 
 if __name__ == "__main__":
