@@ -15,6 +15,7 @@ downloads/
 eggs/
 .eggs/
 lib/
+test/
 lib64/
 parts/
 sdist/
@@ -24,7 +25,11 @@ pip-wheel-metadata/
 share/python-wheels/
 *.egg-info/
 .installed.cfg
+test*.py
+*_copy.py
 *.egg
+*.xml
+*.iml
 test.py
 tempCodeRunnerFile.py
 MANIFEST
