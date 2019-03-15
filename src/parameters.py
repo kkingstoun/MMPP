@@ -18,7 +18,7 @@ class ovfParms:
         self.yAverage = False
         self.zAverage = False
 
-        self.head = "m_z"
+        self.head = "m_y"
         self.oneComp = True
 
         for (key, value) in kwargs.items():

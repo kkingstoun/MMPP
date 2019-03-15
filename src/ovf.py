@@ -1,133 +1,145 @@
 # -*- coding: utf-8 -*-
-"""Dokumentacja
-
-Do zrobienia:
-    * W tym momencie sprwadziłem, że dobrze działa wczytywanie jedno kompozytowych plików, nie wiem czy dla trzech.
-    ** Miałem problem z multiprocessingiem, klasa wywołuje siebie, nie wiem czy to najlepsze rozwiązanie
-    *** Benchmarki są konieczne
-"""
 import os
 import numpy as np
 import glob
 import re
 import multiprocessing as mp
-from functools import partial
-
-def loadSingleOvf(parms, file):
-    return OvfFile(file, parms).array, OvfFile(file, parms).time[0]
 
 
-class OvfFile():
-    """
+class OvfFile:
+    def __init__(self, path, parms=None):
+        self._path = path
+        if parms is None:
+            self._parms = ovfParms()
+        else:
+            self._parms = parms
 
-    """
-    @staticmethod
-    def getKey(filename):
-        return int(re.findall(r'\d+', filename)[-1])
-
-    def __parseFile(self, path):
-        with open(path, 'rb') as f:
-            _headers = {}
-            capture_keys = ("xmin", "ymin", "zmin", "xmin", "ymin", "zmin", "xstepsize",
-                            "ystepsize", "zstepsize", "xnodes", "ynodes", "znodes", "valuedim")
-
-            a = ""
-            while not "Begin: Data" in a:
-                a = f.readline().strip().decode('ASCII')
-                for key in capture_keys:
-                    if key in a:
-                        _headers[key] = float(a.split()[2])
-
-                if "Total simulation time" in a:
-                    time = float(a.split(":")[-1].strip().split()[0].strip())
-
-            znodes = int(_headers['znodes'])
-            ynodes = int(_headers['ynodes'])
-            xnodes = int(_headers['xnodes'])
-            nOfComp = int(_headers['valuedim'])
-
-            array_size = xnodes*ynodes*znodes*nOfComp+1
-            outArray = np.fromfile(f, '<f', count=int(array_size))
-
-            if outArray[0] == 1234567:
-                outArray = outArray[1:].reshape(
-                    1, znodes, ynodes, xnodes, nOfComp)
+        if self._path.split(".")[-1] == "npz":
+            self.array, self.headers, self.time = self.load_npz(self._path)
+            print("Data loaded successfully from  ", path)
+        else:
+            if os.path.isdir(self._path):
+                self.headers = self.load_file(self.get_files_names()[0])[1]
+                self.array, self.time = self.parse_dir()
             else:
-                "sequence 1234567 not detected!"
+                self.array, self.headers = self.load_file(self._path)
+                self.array = self.parse_array(self.array)
+                self.time = self.headers['Desc']
 
-            # print(outArray.shape, outArray1.shape, array_size)
-            # the last 2 lines of OVF files are as follows:
-            # # End: Data Binary 4
-            # # End: Segment
+        if any((self._parms.getParms["tStart"], self._parms.getParms["tStop"],
+                self._parms.getParms["zStart"], self._parms.getParms["zStop"],
+                self._parms.getParms["yStart"], self._parms.getParms["yStop"],
+                self._parms.getParms["xStart"], self._parms.getParms["xStop"])):
+            self.array = self.array[self._parms.getParms["zStart"]:self._parms.getParms["zStop"],
+                         self._parms.getParms["yStart"]:self._parms.getParms["yStop"],
+                         self._parms.getParms["xStart"]:self._parms.getParms["xStop"],
+                         :]
 
-            # print(f.readline())  # temporary verification
-            # print(f.readline())  # temporary verification
+    def __eq__(self, other):
+        return np.allclose(self, other)
 
-        self._array = outArray[self._parms.getParms["zStart"]:self._parms.getParms["zStop"],
-                               self._parms.getParms["yStart"]:self._parms.getParms["yStop"],
-                               self._parms.getParms["xStart"]:self._parms.getParms["xStop"],
-                               :]
-        self._headers = _headers
-        self._time.append(time)
+    def load_npz(self, path):
+        with np.load(path) as data:
+            return data["array"], data["headers"][()], data["path"]
 
-    def __readDir(self):
-        print("Reading folder: " + self._path+"/" +
+    def parse_dir(self):
+        file_list = self.get_files_names()
+
+        print("Reading folder: " + self._path + "/" +
               self._parms.getParms["head"] + '*.ovf')
-
-        file_list = glob.glob(
-            self._path+"/"+self._parms.getParms["head"]+'*.ovf')[::self._parms.getParms["nStep"]]  # files filtering
-
-        file_list = sorted(file_list, key=self.getKey)[
-            self._parms.getParms["tStart"]:self._parms.getParms["tStop"]]
-
-        _headers = OvfFile(file_list[0], self._parms)._headers
-
         print("N of files to process: ", len(file_list))
+        print("Available nodes (n-1): " + str(int(mp.cpu_count() - 1)))
 
-        print("Available nodes (n-1): " + str(int(mp.cpu_count()-1)))
-        self.pool = mp.Pool(processes=int(mp.cpu_count()-1))
-        func = partial(loadSingleOvf, self._parms)
-        self._array, self._time = zip(*self.pool.map(func, file_list))
-        self.pool.close()
-        self.pool.join()
+        pool = mp.Pool(processes=int(mp.cpu_count() - 1))
 
-        self._array = np.array(self._array).reshape([
+        array, time = zip(*[(i, j["Desc"]) for i, j in pool.map(self.load_file, file_list)])
+        pool.close()
+        pool.join()
+        array = np.array(array, dtype=np.float32).reshape([
             len(file_list),
-            int(_headers["znodes"]),
-            int(_headers["ynodes"]),
-            int(_headers["xnodes"]),
-            int(_headers["valuedim"]),
+            int(self.headers["znodes"]),
+            int(self.headers["ynodes"]),
+            int(self.headers["xnodes"]),
+            int(self.headers["valuedim"]),
         ])
-        self._time = np.array(self._time)
 
-        print("Matrix shape:", *self._array.shape)
-        self._headers = _headers 
+        print("Matrix shape:", array.shape)
+        return array, np.array(time)
+
+    def get_files_names(self):
+        file_list = glob.glob(
+            self._path + "/" + self._parms.getParms["head"] + '*.ovf')[
+                    ::self._parms.getParms["nStep"]]  # files filtering
+        return sorted(file_list, key=lambda x: int(re.findall(r'\d+', x)[-1]))[
+               self._parms.getParms["tStart"]:self._parms.getParms["tStop"]]
+
+    def load_file(self, path):
+        with open(path, 'rb') as f:
+            a = self.catch_headers(f)
+            out_arr = np.fromfile(f, '<f4', count=int(a['znodes'] * a['ynodes'] * a['xnodes'] * a['valuedim'] + 1))
+            return out_arr[1:], a
+
+    def catch_headers(self, file):
+        headers = {}
+        capture_keys = ("xmin:", "ymin:", "zmin:", "xmin:", "ymin:", "zmin:", "xstepsize:",
+                        "ystepsize:", "zstepsize:", "xnodes:", "ynodes:", "znodes:", "valuedim:", "Desc:")
+        while True:
+            a = file.readline().strip().decode('ASCII')
+            a = a.split()
+            if a[1] in capture_keys:
+                headers[a[1][:-1]] = float(a[-2]) if a[-1] is 's' else float(a[-1])
+            elif a[2] == 'Data':
+                break
+        return headers
+
+    def parse_array(self, arr):
+        return arr.reshape(1,
+                           int(self.headers['znodes']),
+                           int(self.headers['ynodes']),
+                           int(self.headers['xnodes']),
+                           int(self.headers['valuedim']))
+
+    def getarray_size(self):
+        znodes = int(self.headers['znodes'])
+        ynodes = int(self.headers['ynodes'])
+        xnodes = int(self.headers['xnodes'])
+        nOfComp = int(self.headers['valuedim'])
+        return xnodes * ynodes * znodes * nOfComp + 1
+
+    def save(self, path=None):
+        if path is None:
+            path = os.path.dirname(os.path.realpath(self._path)) + "/arr.npz"
+        np.savez(path, array=self.array, headers=self.headers,
+                 path=self._path, time=self.time)
+        print("Data saved to the ", path)
 
     @property
-    def array(self):
-        return self._array
+    def avgtime(self):
+        if os.path.isdir(self._path):
+            return (self.time[-1] - self.time[0]) / len(self.time)
+        else:
+            return self.time
 
     @property
     def shape(self):
-        return self._array.shape
+        return self.array.shape
 
     @property
-    def time(self):
-        return self._time
+    def geom_shape(self):
+        return self.array.shape[1:4]
 
     @property
-    def headers(self):
-        return self._headers
+    def x(self):
+        return self.array[0, 0, :, :, 0]
 
-    def __init__(self, path="", parms=[]):
+    @property
+    def y(self):
+        return self.array[0, 0, :, :, 1]
 
-        self._path = path
-        self._parms = parms
-        self._time = []
-        self._headers = []
-        self._array = []
+    @property
+    def z(self):
+        return self.array[0, 0, :, :, 2]
 
-        if os.path.isdir(self._path):
-            self.__readDir()
-        else:
-            self.__parseFile(self._path)
+
+if __name__ == "__main__":
+    pass
