@@ -97,7 +97,7 @@ class SubPlot():
 		patches = []
 		for i in arrows:
 			if i is not None:
-				print(i)
+				# print(i)
 				# polygon = Polygon(np.flip(i, 1))
 				polygon = Polygon(i, 1)
 				patches.append(polygon)

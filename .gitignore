@@ -26,6 +26,8 @@ share/python-wheels/
 *.egg-info/
 .installed.cfg
 test*.py
+main.py
+src/main.py
 *_copy.py
 *.egg
 *.xml
