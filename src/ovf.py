@@ -20,7 +20,6 @@ class OvfFile:
             print("Data loaded successfully from  ", path)
         else:
             if os.path.isdir(self._path):
-                self.load_file(self.get_files_names()[0])[1]
                 self.headers = self.load_file(self.get_files_names()[0])[1]
                 self.array, self.time = self.parse_dir()
             else:
@@ -117,8 +116,7 @@ class OvfFile:
 
     @property
     def avgtime(self):
-        path = self._path.split("arr.npz")[0]
-        if os.path.isdir(path):
+        if os.path.isdir(self._path.split("arr.npz")[0]):
             return (self.time[-1] - self.time[0]) / len(self.time)
         else:
             return self.time
