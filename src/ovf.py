@@ -125,22 +125,21 @@ class OvfFile:
     def shape(self):
         return self.array.shape
 
-
     @property
     def geom_shape(self):
         return self.array.shape[1:4]
 
     @property
     def x(self):
-        return self.array[0, 0, :, :0]
+        return self.array[0, 0, :, :, 0]
 
     @property
     def y(self):
-        return self.array[0, 0, :, :1]
+        return self.array[0, 0, :, :, 1]
 
     @property
     def z(self):
-        return self.array[0, 0, :, :2]
+        return self.array[0, 0, :, :, 2]
 
 
 if __name__ == "__main__":
