@@ -8,6 +8,9 @@ import cmocean
 import random
 import seaborn as sns
 import matplotlib.style as style
+from arrow import Arrow
+from matplotlib.patches import Polygon
+from matplotlib.collections import PatchCollection
 # matplotlib.rcParams['mathtext.fontset'] = 'stix'
 # matplotlib.rcParams['text.latex.unicode'] = True
 # matplotlib.rcParams['font.family'] = 'sans-serif'
@@ -17,8 +20,8 @@ import matplotlib.style as style
 class SubPlot():
 	def __init__(self, position, ptype, data,  desc, selected_freq=None, title=None):
 		self.title = title
-		self.shapex = desc['xnodes']*desc['xstepsize']
-		self.shapey = desc['ynodes']*desc['ystepsize']
+		self.shapex = desc['xnodes']*desc['xstepsize']/1e-9
+		self.shapey = desc['ynodes']*desc['ystepsize']/1e-9
 		self.colorbar = None
 
 		self.ax = position
@@ -80,13 +83,27 @@ class SubPlot():
 		return im
 
 	def prepare_imshow(self, ax):
-		im = ax.imshow(self._data, 
+		# datas = np.swapaxes(self._data[:, :, :, :], 1, 2)
+		# ch_z = int(self._data.shape[0]/2)
+		im = ax.imshow(Hslcolormap.TransformToColor(self._data[0, :, :, :]),
 				 origin="lower",
-                 interpolation='none',
-                 aspect="equal",
-                 extent=[0, self.shapex,
-                         0, self.shapey]
+				 interpolation='none',
+				 aspect="equal",
+				#  extent=[0, self.shapex,
+				# 		 0, self.shapey]
 				 )
+		ar = Arrow()
+		arrows = ar.drawArrows(self._data[:, :, :, :], 10)
+		patches = []
+		for i in arrows:
+			if i is not None:
+				print(i)
+				# polygon = Polygon(np.flip(i, 1))
+				polygon = Polygon(i, 1)
+				patches.append(polygon)
+		p = PatchCollection(patches, alpha=0.4)
+		ax.add_collection(p)
+		
 		ax.title.set_text("Stable magnetic configuration")
 		ax.title.set_size(10)
 		ax.title.set_y(1.1)

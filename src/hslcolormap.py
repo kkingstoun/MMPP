@@ -31,11 +31,11 @@ class Hslcolormap():
 
 
     def TransformToColor(self):
-        M_szer_N = np.zeros([self.shape[1], self.shape[0], 3])
+        M_szer_N = np.zeros([self.shape[0], self.shape[1], 3])
         print(M_szer_N.shape)
 
-        for x in range(self.shape[1]):
-            for y in range(self.shape[0]):
+        for y in range(self.shape[0]):
+            for x in range(self.shape[1]):
 
                 c_z = self[y, x][2]
                 c_x = self[y, x][1]
@@ -63,8 +63,8 @@ class Hslcolormap():
                 color = colorsys.hls_to_rgb(angle/360, l, 1)
 
                 if (c_x == 0 and c_y == 0 and c_y == 0):
-                    M_szer_N[x, y, :] = (0.3, 0.3, 0.3)
+                    M_szer_N[y, x, :] = (0.3, 0.3, 0.3)
                 else:
-                    M_szer_N[x, y, :] = color
+                    M_szer_N[y, x, :] = color
 
         return(M_szer_N)
