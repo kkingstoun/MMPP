@@ -4,6 +4,7 @@ import numpy as np
 import glob
 import re
 import multiprocessing as mp
+from parameters import ovfParms
 
 
 class OvfFile:
@@ -40,7 +41,7 @@ class OvfFile:
 
     def load_npz(self, path):
         with np.load(path) as data:
-            return data["array"], data["headers"][()], data["path"]
+            return data["array"], data["headers"][()], data["time"]
 
     def parse_dir(self):
         file_list = self.get_files_names()
@@ -115,7 +116,7 @@ class OvfFile:
 
     @property
     def avgtime(self):
-        if os.path.isdir(self._path):
+        if os.path.isdir(self._path.split("arr.npz")[0]):
             return (self.time[-1] - self.time[0]) / len(self.time)
         else:
             return self.time

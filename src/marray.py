@@ -1,5 +1,5 @@
 from ovf import OvfFile
-
+import os
 import numpy as np
 import random
 import copy
@@ -7,7 +7,6 @@ import copy
 
 class Marray():
     def __init__(self, path=None, parms=None, data=None, comp=None):
-        # super().__init__()
         self.name = str(random.randint(0, 10))
         self._path = path
         self._parms = parms
@@ -60,14 +59,18 @@ class Marray():
             print("As")
             return Marray(data=self.data, comp=2, path=self._path, parms=self._parms)
 
-    # def saveas(self, path, data):
-    #     np.savez(path, (data))
-    #     print("Data saved to the ", path)
+    # def load(self):
+    #     with np.load(self._path) as data:
+    #         self.data = data["data"]
+    #         # self.data.array = data["array"]
+    #         # self.data._headers = data["headers"][()]
+    #         # self._path = data["path"]
+    #         # self.data.time = data["time"]
+    #         print("Data loaded successfully from  ", self._path)
 
-    # def load(self, path):
-    #     with np.load(path) as data:
-    #         self.array = data["array"]
-    #         self._headers = data["headers"][()]
-    #         self._path = data["path"]
-    #         self.time = data["time"]
-    #         print("Data loaded successfully from  ", path)
+    def save(self, path=None):
+        self.data.save(path)
+        # if path is None:
+        #     save_path = os.path.dirname(os.path.realpath(self._path)) + "/arr.npz"
+        # np.savez(save_path, data=self.data)
+        # print("Data saved to the ", save_path)
