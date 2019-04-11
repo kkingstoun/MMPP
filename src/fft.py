@@ -3,6 +3,9 @@ import math
 import matplotlib.pyplot as plt
 import multiprocessing as mp
 
+# TO DO:
+# Generate OVF file from data
+# Problem with save arr.npz
 
 class Fft:
 
