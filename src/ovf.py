@@ -71,7 +71,7 @@ class OvfFile:
         file_list = glob.glob(
             self._path + "/" + self._parms.getParms["head"] + '*.ovf')[
                     ::self._parms.getParms["nStep"]]  # files filtering
-        return sorted(file_list, key=lambda x: int(re.findall(r'\d+', x)[-1]))[
+        return sorted(file_list, key=lambda x: int(re.findall(r'[-+]?\d*\.\d+|\d+', x)[-1]))[
                self._parms.getParms["tStart"]:self._parms.getParms["tStop"]]
 
     def load_file(self, path):
