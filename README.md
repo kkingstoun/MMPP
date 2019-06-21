@@ -12,3 +12,10 @@ Features:
 5. Dispersion modes visualization (not available yet).
 6.  3DsMax and Blender compatibility for visualizations (not available yet).
 
+
+If you have any question please write to:
+
+mateusz.zelent@amu.edu.pl
+Mateusz Zelent,
+Faculty of Physics, 
+Adam Mickiewicz University, Poznań, Poland
